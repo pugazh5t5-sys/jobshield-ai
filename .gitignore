@@ -8,6 +8,10 @@
 .venv/
 venv/
 
+# Local helper tools (e.g. the GitHub CLI binary) and its auth config.
+# This folder holds a login token, so it must never be committed.
+.tools/
+
 # Python bytecode
 __pycache__/
 *.py[cod]
