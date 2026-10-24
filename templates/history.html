@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis history &middot; {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="section section--tight">
+  <div class="container">
+    <h1 class="page-title">Analysis history</h1>
+    <p class="page-lead">
+      Your saved analyses are private to this browser. No account is needed, and
+      nobody else can see your list.
+    </p>
+
+    {% if not analyses %}
+      <div class="empty-state">
+        <span class="empty-state__icon" aria-hidden="true">
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="8.5"/>
+            <path d="M12 7.5V12l3 2"/>
+          </svg>
+        </span>
+        <h2 class="empty-state__title">Nothing saved yet</h2>
+        <p class="empty-state__text">
+          Analyses you run will appear here, newest first, so you can reopen or
+          delete them later.
+        </p>
+        <a class="btn btn--primary" href="{{ url_for('analysis.analyze') }}">Analyze a job posting</a>
+      </div>
+    {% endif %}
+
+    {% include "partials/disclaimer.html" %}
+  </div>
+</section>
+{% endblock %}

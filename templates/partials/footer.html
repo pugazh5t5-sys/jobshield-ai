@@ -1,0 +1,31 @@
+<footer class="site-footer">
+  <div class="container site-footer__inner">
+    <div class="site-footer__brand">
+      {% include "partials/logo.html" %}
+      <div>
+        <p class="site-footer__name">{{ app_name }}</p>
+        <p class="site-footer__tagline">{{ app_tagline }}</p>
+      </div>
+    </div>
+
+    <nav class="site-footer__nav" aria-label="Footer">
+      <ul>
+        <li><a href="{{ url_for('main.index') }}">Home</a></li>
+        <li><a href="{{ url_for('analysis.analyze') }}">Analyze Job</a></li>
+        <li><a href="{{ url_for('dashboard.dashboard') }}">Dashboard</a></li>
+        <li><a href="{{ url_for('history.history') }}">History</a></li>
+        <li><a href="{{ url_for('main.about') }}">About &amp; methodology</a></li>
+      </ul>
+    </nav>
+
+    <div class="site-footer__disclaimer">
+      {% with dark = true %}{% include "partials/disclaimer.html" %}{% endwith %}
+    </div>
+
+    <p class="site-footer__meta">
+      &copy; {{ current_year }} {{ app_name }} &middot; A final-year student project.
+      Estimates only &mdash; not a verification service.
+      <span class="site-footer__version">Health check: <a href="{{ url_for('main.health') }}">/health</a></span>
+    </p>
+  </div>
+</footer>

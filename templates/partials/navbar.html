@@ -1,0 +1,49 @@
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="brand" href="{{ url_for('main.index') }}">
+      {% include "partials/logo.html" %}
+      <span class="brand__text">
+        <span class="brand__name">{{ app_name }}</span>
+        <span class="brand__tagline">{{ app_tagline }}</span>
+      </span>
+    </a>
+
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation" data-nav-toggle>
+      <span class="nav-toggle__icon" aria-hidden="true"><span></span><span></span><span></span></span>
+      <span class="nav-toggle__label">Menu</span>
+    </button>
+
+    <nav id="primary-navigation" class="site-nav" aria-label="Primary" data-nav>
+      <ul class="site-nav__list">
+        <li>
+          <a href="{{ url_for('main.index') }}" {% if request.endpoint == 'main.index' %}aria-current="page"{% endif %}>Home</a>
+        </li>
+        <li>
+          <a href="{{ url_for('analysis.analyze') }}" {% if request.endpoint == 'analysis.analyze' %}aria-current="page"{% endif %}>Analyze Job</a>
+        </li>
+        <li>
+          <a href="{{ url_for('dashboard.dashboard') }}" {% if request.endpoint == 'dashboard.dashboard' %}aria-current="page"{% endif %}>Dashboard</a>
+        </li>
+        <li>
+          <a href="{{ url_for('history.history') }}" {% if request.endpoint == 'history.history' %}aria-current="page"{% endif %}>History</a>
+        </li>
+        <li>
+          <a href="{{ url_for('main.about') }}" {% if request.endpoint == 'main.about' %}aria-current="page"{% endif %}>About</a>
+        </li>
+      </ul>
+
+      <div class="site-nav__aside">
+        {% if github_url %}
+          <a class="btn btn--ghost btn--small" href="{{ github_url }}" rel="noopener noreferrer" target="_blank">
+            GitHub
+            <span class="visually-hidden">(opens in a new tab)</span>
+          </a>
+        {% else %}
+          <span class="nav-placeholder" title="Add your repository link to the GITHUB_URL setting in your .env file">
+            GitHub link not set
+          </span>
+        {% endif %}
+      </div>
+    </nav>
+  </div>
+</header>

@@ -1,0 +1,44 @@
+# ---------------------------------------------------------------------------
+# JobShield AI - files that must never go to GitHub
+# ---------------------------------------------------------------------------
+
+# Secrets and local environment
+.env
+.env.local
+.venv/
+venv/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Flask instance folder (may hold the local SQLite database)
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# The dataset is downloaded locally and must never be committed.
+data/raw/*
+!data/raw/.gitkeep
+
+# Generated evaluation plots (re-created by ml/evaluate_model.py)
+artifacts/reports/*.png
+
+# Editors and operating system noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

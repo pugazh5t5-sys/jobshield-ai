@@ -1,0 +1,11 @@
+# JobShield AI - extra tools used only while developing, testing and training.
+# This file starts by pulling in everything from requirements.txt.
+#
+# Versions pinned to match the environment this project was actually built on.
+
+-r requirements.txt
+
+kaggle==2.2.5
+matplotlib==3.11.2
+pytest==9.1.1
+pytest-cov==7.1.0

@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}About &amp; methodology &middot; {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="section section--tight">
+  <div class="container container--narrow">
+    <h1 class="page-title">About JobShield AI</h1>
+    <p class="page-lead">
+      How the project works, what the numbers mean, and &mdash; just as
+      importantly &mdash; what it cannot do.
+    </p>
+
+    <h2 class="subsection-title">The problem</h2>
+    <p>
+      Fraudulent job adverts are cheap to create and hard to spot. They often
+      promise high pay for little work, ask for a "registration" or "training"
+      fee, or request identity documents before any interview. Job seekers
+      usually have minutes, not hours, to decide whether to reply.
+    </p>
+    <p>
+      JobShield AI gives you two independent second opinions before you commit:
+      a machine-learning estimate based on how the advert is worded, and a
+      transparent list of warning signs based on rules a person can read and
+      check.
+    </p>
+
+    <h2 class="subsection-title">The machine-learning pipeline</h2>
+    <ol class="prose-list">
+      <li>
+        <strong>Collect the data.</strong> We use a public, labelled dataset of
+        real job postings (EMSCAD), where every posting is marked either
+        fraudulent or genuine.
+      </li>
+      <li>
+        <strong>Clean it up.</strong> Missing text becomes an empty string, and
+        duplicate postings are removed <em>before</em> the data is split, so the
+        same advert cannot appear in both the training and the test data.
+      </li>
+      <li>
+        <strong>Split it.</strong> The postings are divided into a training set
+        and a held-out test set. The test set is locked away and only used once,
+        at the very end.
+      </li>
+      <li>
+        <strong>Turn words into numbers (TF-IDF).</strong> See the explanation
+        below.
+      </li>
+      <li>
+        <strong>Train a classifier.</strong> Logistic Regression learns which
+        word patterns tend to appear in fraudulent postings.
+      </li>
+      <li>
+        <strong>Test it once.</strong> The locked-away test set measures how well
+        it really does on adverts it has never seen.
+      </li>
+    </ol>
+
+    <h3 class="subsubsection-title">What TF-IDF does, in plain language</h3>
+    <p>
+      A computer cannot read words, so each posting is turned into a long list of
+      numbers. TF-IDF gives every word a weight: <em>term frequency</em> rewards
+      words that appear often in this posting, and <em>inverse document
+      frequency</em> discounts words that appear in almost every posting (such as
+      "the" or "job"). The result is that distinctive wording &mdash; like
+      "registration fee" or "no interview" &mdash; carries more weight than
+      everyday filler. Word pairs (bigrams) are included too, so "no interview"
+      counts as one clue rather than two unrelated words.
+    </p>
+
+    <h3 class="subsubsection-title">Why Logistic Regression</h3>
+    <p>
+      Logistic Regression draws a straight-line boundary between "looks genuine"
+      and "looks fraudulent" in that huge space of numbers, and it gives a score
+      between 0 and 1. It trains in seconds on a laptop, it is easy to explain,
+      and its coefficients can be read back as "which words pushed the decision
+      this way". That transparency is exactly what a project about explainability
+      needs. It is a baseline, not the last word &mdash; the docs list stronger
+      models as future work.
+    </p>
+
+    <h3 class="subsubsection-title">Why the vectorizer is fitted on the training data only</h3>
+    <p>
+      If the word weights were calculated using the test set as well, the model
+      would effectively have peeked at the answers, and the reported scores would
+      be flattering and untrue. Fitting TF-IDF only on training data keeps the
+      test set an honest measure.
+    </p>
+
+    <h3 class="subsubsection-title">Handling the imbalance</h3>
+    <p>
+      Fraudulent postings are a small minority of the dataset. A lazy model could
+      score well simply by saying "genuine" every time, which would be useless.
+      We therefore train with balanced class weights and choose a decision
+      threshold from cross-validated training predictions, so the model is
+      encouraged to catch fraud while we still report how many false alarms it
+      raises.
+    </p>
+
+    <h2 class="subsection-title">The warning-sign engine</h2>
+    <p>
+      Running separately from the model is a set of readable rules &mdash; for
+      example "asks for a registration fee" or "asks for an Aadhaar or PAN copy
+      before any interview". Each rule has a severity, an explanation of why it
+      matters, and a suggested next step. The rules are deliberately kept apart
+      from the model: the two are shown side by side, and they are never added up
+      to produce a single "scam score".
+    </p>
+    <p>
+      A rule firing is a prompt to look closer. It is never evidence that a scam
+      has occurred, and the absence of warning signs never means a posting is
+      safe.
+    </p>
+
+    {% if warning_rules %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <caption class="data-table__caption">
+            The rules currently active, generated directly from the rule registry in the code.
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Category</th>
+              <th scope="col">Rule</th>
+              <th scope="col">Severity</th>
+              <th scope="col">Why it matters</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for rule in warning_rules %}
+              <tr>
+                <td data-label="Category">{{ rule.category }}</td>
+                <td data-label="Rule">{{ rule.title }}</td>
+                <td data-label="Severity">{{ rule.severity|capitalize }}</td>
+                <td data-label="Why it matters">{{ rule.why_it_matters }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="notice notice--info">
+        <p>
+          The rule list has not been generated here yet. When the warning-sign
+          engine is in place, this table is built straight from the rule registry
+          in the code, so the documentation cannot drift away from what the app
+          actually does.
+        </p>
+      </div>
+    {% endif %}
+
+    <h2 class="subsection-title">Evaluation &mdash; measured, not claimed</h2>
+
+    {% if evaluation %}
+      <p>
+        These figures come from <code>artifacts/evaluation_report.json</code>,
+        produced by <code>ml/evaluate_model.py</code> on the held-out test set.
+      </p>
+
+      <dl class="facts__grid facts__grid--two">
+        <div class="fact">
+          <dt>Model version</dt>
+          <dd>{{ evaluation.get("model_version") or "Not recorded" }}</dd>
+        </div>
+        <div class="fact">
+          <dt>Test set size</dt>
+          <dd>{{ (evaluation.get("split") or {}).get("test") or "Not recorded" }}</dd>
+        </div>
+        <div class="fact">
+          <dt>Recall &mdash; fraudulent class</dt>
+          <dd>
+            {% set r = (evaluation.get("test") or {}).get("recall_fraud") %}
+            {{ "%.3f"|format(r) if r is not none else "Not recorded" }}
+          </dd>
+        </div>
+        <div class="fact">
+          <dt>Precision &mdash; fraudulent class</dt>
+          <dd>
+            {% set p = (evaluation.get("test") or {}).get("precision_fraud") %}
+            {{ "%.3f"|format(p) if p is not none else "Not recorded" }}
+          </dd>
+        </div>
+        <div class="fact">
+          <dt>F1 &mdash; fraudulent class</dt>
+          <dd>
+            {% set f = (evaluation.get("test") or {}).get("f1_fraud") %}
+            {{ "%.3f"|format(f) if f is not none else "Not recorded" }}
+          </dd>
+        </div>
+        <div class="fact">
+          <dt>ROC-AUC</dt>
+          <dd>
+            {% set a = (evaluation.get("test") or {}).get("roc_auc") %}
+            {{ "%.3f"|format(a) if a is not none else "Not recorded" }}
+          </dd>
+        </div>
+      </dl>
+
+      {% if (evaluation.get("test") or {}).get("plain_language_reading") %}
+        <p class="callout">
+          {{ (evaluation.get("test") or {}).get("plain_language_reading") }}
+        </p>
+      {% endif %}
+
+      <p class="muted">
+        Recall is the share of genuinely fraudulent postings that were caught.
+        Precision is the share of flagged postings that really were fraudulent.
+        F1 balances the two. ROC-AUC measures how well the model ranks fraudulent
+        postings above genuine ones across all thresholds.
+      </p>
+    {% else %}
+      <div class="notice notice--info">
+        <p>
+          <strong>Model not trained yet.</strong>
+          No accuracy, recall or F1 figures are shown anywhere in this app until
+          the model has been trained and evaluated on the real dataset. Guessing
+          numbers here would defeat the whole point of the project.
+        </p>
+      </div>
+    {% endif %}
+
+    <h2 class="subsection-title">Limitations</h2>
+    <ul class="prose-list prose-list--bullets">
+      <li>
+        The model learns from past adverts. Scams change, and wording that is new
+        to the model will not be recognised.
+      </li>
+      <li>
+        A genuine-but-unusually-worded advert can look suspicious, and a
+        well-written scam can look normal. The tool makes mistakes in both
+        directions.
+      </li>
+      <li>
+        The dataset under-represents non-English postings, so results for those
+        are less reliable.
+      </li>
+      <li>
+        Nothing here verifies a company. There is no registry lookup, no business
+        database and no link-reputation service connected to this project.
+      </li>
+      <li>
+        History is tied to a cookie on your browser. Clearing your browser data
+        removes access to your saved analyses.
+      </li>
+    </ul>
+
+    <h2 class="subsection-title">Responsible use</h2>
+    <p>
+      Treat the output as one input among several. Check the company's official
+      careers page, look the organisation up independently, and speak to a real
+      person before sharing anything sensitive. Never pay money to get a job.
+    </p>
+
+    {% include "partials/disclaimer.html" %}
+  </div>
+</section>
+{% endblock %}

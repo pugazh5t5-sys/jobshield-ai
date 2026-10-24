@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} &middot; {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="section section--tight">
+  <div class="container container--narrow">
+    <p class="error__code" aria-hidden="true">{{ code }}</p>
+    <h1 class="page-title">{{ title }}</h1>
+    <p class="page-lead">{{ message }}</p>
+
+    {% if show_setup %}
+      <div class="notice notice--warning" role="status">
+        <p><strong>Why this happened:</strong> {{ model_reason }}</p>
+      </div>
+
+      <h2 class="subsection-title">Set the model up</h2>
+      <p>
+        The dataset is not stored in the project, so the model has to be trained
+        on your machine once. Run these commands from the project folder in
+        PowerShell.
+      </p>
+
+      <ol class="setup-steps">
+        <li>
+          <p class="setup-steps__label">Install the dependencies (first time only):</p>
+          <pre class="code-block"><code>python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements-dev.txt</code></pre>
+        </li>
+        <li>
+          <p class="setup-steps__label">
+            Download the dataset. This needs a free Kaggle account &mdash; put your
+            <code>kaggle.json</code> in <code>%USERPROFILE%\.kaggle\</code> first.
+            Check the dataset page and its licence before you use it.
+          </p>
+          <pre class="code-block"><code>kaggle datasets download -d shivamb/real-or-fake-fake-jobposting-prediction -p data/raw --unzip</code></pre>
+        </li>
+        <li>
+          <p class="setup-steps__label">Train the model, then create the evaluation report:</p>
+          <pre class="code-block"><code>python -m ml.train_model
+python -m ml.evaluate_model</code></pre>
+        </li>
+      </ol>
+
+      <p class="muted">
+        Full details, including the manual download route:
+        <code>data/README.md</code> and <code>README.md</code>.
+      </p>
+    {% endif %}
+
+    <div class="error__actions">
+      <a class="btn btn--primary" href="{{ url_for('main.index') }}">Back to home</a>
+      <a class="btn btn--secondary" href="{{ url_for('analysis.analyze') }}">Go to the analysis form</a>
+    </div>
+
+    <p class="error__help">
+      If this keeps happening, the <a href="{{ url_for('main.health') }}">health check</a>
+      shows the current status of the model.
+    </p>
+
+    {% include "partials/disclaimer.html" %}
+  </div>
+</section>
+{% endblock %}

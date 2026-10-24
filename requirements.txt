@@ -1,0 +1,25 @@
+# JobShield AI - runtime and training dependencies.
+#
+# Versions are pinned exactly. This matters most for scikit-learn: the saved
+# model is a pickle, and pickles are not guaranteed to load correctly across
+# library versions. The versions below are the ones this project was actually
+# built and tested with on Python 3.11.9 (Windows).
+#
+# To reinstall exactly these versions:  pip install -r requirements.txt
+
+blinker==1.9.0
+click==8.5.0
+Flask==3.1.3
+Flask-SQLAlchemy==3.1.1
+Flask-WTF==1.3.0
+gunicorn==26.2.0
+itsdangerous==2.2.0
+Jinja2==3.1.6
+joblib==1.6.0
+numpy==2.4.6
+pandas==3.1.0
+python-dotenv==1.2.4
+scikit-learn==1.9.1
+SQLAlchemy==2.1.6
+Werkzeug==3.1.9
+WTForms==3.3.1

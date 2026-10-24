@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} &middot; Detect suspicious job postings{% endblock %}
+
+{% block content %}
+
+{# ---------------------------------------------------------------- HERO #}
+<section class="hero">
+  <div class="container hero__inner">
+    <div class="hero__copy">
+      <p class="hero__eyebrow">{{ app_tagline }}</p>
+      <h1 class="hero__title">Your Next Opportunity Should Be a Safe One.</h1>
+      <p class="hero__lead">
+        Analyze job postings with machine learning and discover warning signs
+        before you apply.
+      </p>
+      <div class="hero__actions">
+        <a class="btn btn--primary" href="{{ url_for('analysis.analyze') }}">Analyze a Job</a>
+        <a class="btn btn--secondary" href="#how-it-works">Explore How It Works</a>
+      </div>
+      <p class="hero__note">
+        A decision-support tool. It estimates and highlights warning signs &mdash;
+        it never proves that a posting is fraudulent.
+      </p>
+    </div>
+
+    <div class="hero__art" aria-hidden="true">
+      {# Original illustration: a job document being scanned behind a shield. #}
+      <svg viewBox="0 0 360 320" class="hero__svg" role="presentation" focusable="false">
+        <defs>
+          <linearGradient id="scanBeam" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2DD4BF" stop-opacity="0.55"/>
+            <stop offset="100%" stop-color="#2DD4BF" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+
+        <!-- background panel -->
+        <rect x="18" y="22" width="324" height="276" rx="18" fill="#111C30"/>
+        <rect x="18" y="22" width="324" height="276" rx="18" fill="none" stroke="#1E2B45" stroke-width="1.5"/>
+
+        <!-- the job document -->
+        <rect x="66" y="60" width="176" height="200" rx="10" fill="#1B2740" stroke="#2B3A5A" stroke-width="1.5"/>
+        <rect x="86" y="82" width="96" height="12" rx="6" fill="#60A5FA" opacity="0.85"/>
+        <rect x="86" y="108" width="136" height="8" rx="4" fill="#33415C"/>
+        <rect x="86" y="126" width="120" height="8" rx="4" fill="#33415C"/>
+        <rect x="86" y="144" width="132" height="8" rx="4" fill="#33415C"/>
+        <rect x="86" y="162" width="98" height="8" rx="4" fill="#33415C"/>
+        <rect x="86" y="188" width="60" height="8" rx="4" fill="#F59E0B" opacity="0.9"/>
+        <rect x="86" y="206" width="128" height="8" rx="4" fill="#33415C"/>
+        <rect x="86" y="224" width="110" height="8" rx="4" fill="#33415C"/>
+
+        <!-- scanning beam -->
+        <rect x="60" y="120" width="188" height="66" rx="6" fill="url(#scanBeam)"/>
+        <rect x="60" y="184" width="188" height="2.5" rx="1.25" fill="#2DD4BF"/>
+
+        <!-- shield -->
+        <path d="M262 138l42 15v34c0 28-17.6 50-42 60-24.4-10-42-32-42-60v-34l42-15z"
+              fill="#0B1220" stroke="#2DD4BF" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M243 188l13 13 26-27" fill="none" stroke="#2DD4BF"
+              stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+{# ------------------------------------------------------- MODEL FACTS STRIP #}
+<section class="facts" aria-labelledby="facts-heading">
+  <div class="container">
+    <h2 id="facts-heading" class="facts__heading">Model facts</h2>
+
+    {% if model_facts.available %}
+      <p class="facts__intro">
+        These numbers come from the trained model's saved metadata file. They are
+        measured on a held-out test set that the model never learned from.
+      </p>
+      <dl class="facts__grid">
+        <div class="fact">
+          <dt>Dataset</dt>
+          <dd>{{ model_facts.dataset_name or "Not recorded" }}</dd>
+        </div>
+        <div class="fact">
+          <dt>Model version</dt>
+          <dd>{{ model_facts.model_version or "Not recorded" }}</dd>
+        </div>
+        <div class="fact">
+          <dt>Test recall &mdash; fraudulent class</dt>
+          <dd>
+            {% if model_facts.recall_fraud is not none %}
+              {{ "%.3f"|format(model_facts.recall_fraud) }}
+            {% else %}
+              Not recorded
+            {% endif %}
+          </dd>
+        </div>
+        <div class="fact">
+          <dt>Test F1 &mdash; fraudulent class</dt>
+          <dd>
+            {% if model_facts.f1_fraud is not none %}
+              {{ "%.3f"|format(model_facts.f1_fraud) }}
+            {% else %}
+              Not recorded
+            {% endif %}
+          </dd>
+        </div>
+      </dl>
+      <p class="facts__foot">
+        Recall is the share of genuinely fraudulent postings the model managed to
+        catch. F1 balances catching fraud against raising false alarms.
+      </p>
+    {% else %}
+      <div class="notice notice--info">
+        <p>
+          <strong>Model not set up yet.</strong>
+          No performance numbers are shown here until the model has been trained
+          on the real dataset. See
+          <code>data/README.md</code> for how to download the dataset and
+          <code>python -m ml.train_model</code> to train the model.
+        </p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{# ---------------------------------------------------------- FEATURE CARDS #}
+<section class="section" aria-labelledby="features-heading">
+  <div class="container">
+    <h2 id="features-heading" class="section__title">What JobShield AI does</h2>
+    <p class="section__lead">
+      Two independent checks, shown side by side and never blended into a single
+      verdict.
+    </p>
+
+    <ul class="card-grid">
+      <li class="card">
+        <span class="card__icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="16" rx="3"/>
+            <path d="M7 9h10M7 13h6"/>
+          </svg>
+        </span>
+        <h3 class="card__title">AI-powered text analysis</h3>
+        <p class="card__text">
+          A machine-learning model trained on thousands of real postings reads the
+          wording and estimates whether it resembles known fraudulent adverts.
+        </p>
+      </li>
+
+      <li class="card">
+        <span class="card__icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3l9 16H3l9-16z"/>
+            <path d="M12 10v4"/>
+            <circle cx="12" cy="16.6" r="0.9" fill="currentColor" stroke="none"/>
+          </svg>
+        </span>
+        <h3 class="card__title">Explainable warning signs</h3>
+        <p class="card__text">
+          A transparent rule engine flags risky patterns &mdash; upfront fees,
+          sensitive-data requests, urgent pressure &mdash; and shows the exact
+          words that triggered each one.
+        </p>
+      </li>
+
+      <li class="card">
+        <span class="card__icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="8.5"/>
+            <path d="M12 7.5V12l3 2"/>
+          </svg>
+        </span>
+        <h3 class="card__title">Analysis history</h3>
+        <p class="card__text">
+          Every analysis you run is saved to your own private list, so you can
+          compare postings and revisit what you found later.
+        </p>
+      </li>
+
+      <li class="card">
+        <span class="card__icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 5.5A2.5 2.5 0 016.5 3H12v18H6.5A2.5 2.5 0 014 18.5v-13z"/>
+            <path d="M12 3h5.5A2.5 2.5 0 0120 5.5v13a2.5 2.5 0 01-2.5 2.5H12"/>
+          </svg>
+        </span>
+        <h3 class="card__title">Recruitment scam awareness</h3>
+        <p class="card__text">
+          Each warning sign comes with a plain-language explanation and a
+          practical next step, so you learn to recognise the pattern yourself.
+        </p>
+      </li>
+    </ul>
+  </div>
+</section>
+
+{# ------------------------------------------------------------ HOW IT WORKS #}
+<section class="section section--dark" id="how-it-works" aria-labelledby="how-heading">
+  <div class="container">
+    <h2 id="how-heading" class="section__title">How it works</h2>
+    <p class="section__lead">Three steps, one page, no account needed.</p>
+
+    <ol class="steps">
+      <li class="step">
+        <span class="step__number" aria-hidden="true">1</span>
+        <h3 class="step__title">Submit a job posting</h3>
+        <p class="step__text">
+          Paste the title and description. Add the company name and location if
+          the advert includes them.
+        </p>
+      </li>
+      <li class="step">
+        <span class="step__number" aria-hidden="true">2</span>
+        <h3 class="step__title">Analyze its content</h3>
+        <p class="step__text">
+          The text is turned into numbers the model can read, the model makes an
+          estimate, and the rule engine looks for risky wording.
+        </p>
+      </li>
+      <li class="step">
+        <span class="step__number" aria-hidden="true">3</span>
+        <h3 class="step__title">Review the prediction and warning signs</h3>
+        <p class="step__text">
+          You get the model's estimate and the warning signs in two separate
+          panels, plus the evidence behind each one.
+        </p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+{# --------------------------------------------------------- RESPONSIBLE USE #}
+<section class="section" aria-labelledby="responsible-heading">
+  <div class="container container--narrow">
+    <h2 id="responsible-heading" class="section__title">Use this responsibly</h2>
+    <p>
+      JobShield AI is a decision-support tool, not a judge. A high estimate is not
+      proof of fraud, and a low estimate is not proof that an employer is genuine.
+      The tool has no way to check company registrations, business records or
+      link reputations, because it is not connected to any such service.
+    </p>
+    <p>
+      Always confirm an opportunity through independent, official sources &mdash;
+      the company's own careers page, a phone number you looked up yourself, or a
+      person you trust who works there. Never pay money to obtain a job.
+    </p>
+    {% include "partials/disclaimer.html" %}
+  </div>
+</section>
+
+{% endblock %}

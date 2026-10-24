@@ -1,0 +1,9 @@
+{# The required disclaimer. Included on every page, exactly as written. #}
+<div class="disclaimer{{ ' disclaimer--dark' if dark|default(false) else '' }}" role="note">
+  <svg class="disclaimer__icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <path d="M12 3 2.5 20h19L12 3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M12 9.5v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="12" cy="17.2" r="1.05" fill="currentColor"/>
+  </svg>
+  <p class="disclaimer__text">{{ disclaimer_text }}</p>
+</div>

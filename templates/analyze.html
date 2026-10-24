@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Analyze a job posting &middot; {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="section section--tight">
+  <div class="container container--narrow">
+    <h1 class="page-title">Analyze a job posting</h1>
+    <p class="page-lead">
+      Paste the posting exactly as you received it. The more of the original
+      wording you keep, the more the warning-sign rules have to work with.
+    </p>
+
+    {% if not model_status.available %}
+      <div class="notice notice--warning" role="status">
+        <p>
+          <strong>The trained model is not available on this deployment.</strong>
+          Submitting the form will show setup instructions instead of an estimate.
+          We never show a made-up result.
+        </p>
+      </div>
+    {% endif %}
+
+    <form class="form" method="post" action="{{ url_for('analysis.analyze') }}" data-analyze-form novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <p class="field__error" role="alert" data-form-error hidden></p>
+
+      <div class="field">
+        <label class="field__label" for="job_title">
+          Job title <span class="field__required" aria-hidden="true">*</span>
+          <span class="visually-hidden">(required)</span>
+        </label>
+        <input class="field__input" type="text" id="job_title" name="job_title"
+               maxlength="200" required
+               aria-describedby="job_title_hint"
+               autocomplete="off">
+        <p class="field__hint" id="job_title_hint">Between 3 and 200 characters.</p>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="company_name">Company name</label>
+        <input class="field__input" type="text" id="company_name" name="company_name"
+               maxlength="200" aria-describedby="company_name_hint" autocomplete="off">
+        <p class="field__hint" id="company_name_hint">
+          Leave blank if the posting doesn't name the employer. A missing employer
+          can itself be a warning sign.
+        </p>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="job_description">
+          Job description <span class="field__required" aria-hidden="true">*</span>
+          <span class="visually-hidden">(required)</span>
+        </label>
+        <textarea class="field__input field__input--textarea" id="job_description"
+                  name="job_description" rows="12" required
+                  maxlength="15000"
+                  aria-describedby="job_description_hint"
+                  data-counter-target="job_description_count"></textarea>
+        <p class="field__hint" id="job_description_hint">
+          Paste the full advert text. Minimum 50 characters, maximum 15,000.
+          <span class="field__counter" data-counter="job_description_count"
+                aria-live="polite">0 / 15000 characters</span>
+        </p>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field__label" for="location">Job location</label>
+          <input class="field__input" type="text" id="location" name="location"
+                 maxlength="200" autocomplete="off">
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="employment_type">Employment type</label>
+          <select class="field__input" id="employment_type" name="employment_type">
+            <option value="">Other / not specified</option>
+            <option value="Full-time">Full-time</option>
+            <option value="Part-time">Part-time</option>
+            <option value="Contract">Contract</option>
+            <option value="Temporary">Temporary</option>
+            <option value="Internship">Internship</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="job_url">Job application URL</label>
+        <input class="field__input" type="url" id="job_url" name="job_url"
+               maxlength="2000" inputmode="url"
+               aria-describedby="job_url_hint" autocomplete="off">
+        <p class="field__hint" id="job_url_hint">
+          Must start with http:// or https://. The app checks the format only.
+          It never opens, fetches or "verifies" the link.
+        </p>
+      </div>
+
+      <details class="details">
+        <summary class="details__summary">Additional details (optional)</summary>
+        <div class="details__body">
+
+          <div class="field">
+            <label class="field__label" for="requirements">Requirements</label>
+            <textarea class="field__input" id="requirements" name="requirements"
+                      rows="5" maxlength="10000"
+                      data-counter-target="requirements_count"></textarea>
+            <p class="field__hint">
+              Up to 10,000 characters.
+              <span class="field__counter" data-counter="requirements_count">0 / 10000 characters</span>
+            </p>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="benefits">Benefits</label>
+            <textarea class="field__input" id="benefits" name="benefits"
+                      rows="4" maxlength="5000"
+                      data-counter-target="benefits_count"></textarea>
+            <p class="field__hint">
+              Up to 5,000 characters.
+              <span class="field__counter" data-counter="benefits_count">0 / 5000 characters</span>
+            </p>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="company_profile">About the company</label>
+            <textarea class="field__input" id="company_profile" name="company_profile"
+                      rows="5" maxlength="10000"
+                      data-counter-target="company_profile_count"></textarea>
+            <p class="field__hint">
+              Up to 10,000 characters.
+              <span class="field__counter" data-counter="company_profile_count">0 / 10000 characters</span>
+            </p>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label class="field__label" for="salary_range">Salary or pay information</label>
+              <input class="field__input" type="text" id="salary_range" name="salary_range"
+                     maxlength="200" autocomplete="off">
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="recruiter_email">Recruiter contact email</label>
+              <input class="field__input" type="email" id="recruiter_email" name="recruiter_email"
+                     maxlength="254" autocomplete="off"
+                     aria-describedby="recruiter_email_hint">
+              <p class="field__hint" id="recruiter_email_hint">
+                Optional. Used only by the warning-sign rules to look for
+                free-mail addresses or domain mismatches.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </details>
+
+      <div class="form__actions">
+        <button class="btn btn--primary btn--large" type="submit" data-submit-button>
+          <span class="btn__label">Analyze Job Posting</span>
+          <span class="spinner" aria-hidden="true" data-spinner hidden></span>
+        </button>
+        <p class="form__loading" role="status" aria-live="polite" data-loading-message></p>
+      </div>
+    </form>
+
+    <p class="form__privacy">
+      Job descriptions are treated as untrusted text: never executed, never sent
+      to another service, and never written to the logs.
+    </p>
+
+    {% include "partials/disclaimer.html" %}
+  </div>
+</section>
+{% endblock %}
