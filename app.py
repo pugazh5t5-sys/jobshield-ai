@@ -154,5 +154,8 @@ def create_app(config_name: str | None = None) -> Flask:
     return app
 
 
-if __name__ == "__main__":  # pragma: no cover - manual development entry point
-    create_app().run(debug=True)
+# Create the Flask application instance for Vercel
+app = create_app()
+
+if __name__ == "__main__":
+    app.run(debug=True)
