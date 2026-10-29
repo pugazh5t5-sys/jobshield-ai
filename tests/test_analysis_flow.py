@@ -50,7 +50,7 @@ def test_analyze_post_returns_rule_report_and_history(client):
     )
 
     assert response.status_code == 200
-    assert b"no AI probability was generated" in response.data.lower()
+    assert b"no ai probability was generated" in response.data.lower()
     assert b"Upfront fee or deposit mentioned" in response.data
 
     with client.application.app_context():
