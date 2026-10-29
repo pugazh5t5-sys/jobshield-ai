@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis report &middot; {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="section section--tight">
+  <div class="container container--narrow">
+    <p class="muted">JOB POSTING REPORT</p>
+    <h1 class="page-title">{{ analysis.job_title }}</h1>
+    <p class="page-lead">
+      {% if analysis.company_name %}{{ analysis.company_name }}{% else %}Employer not specified{% endif %}
+      {% if analysis.location %}&middot; {{ analysis.location }}{% endif %}
+      {% if analysis.employment_type %}&middot; {{ analysis.employment_type }}{% endif %}
+    </p>
+
+    <div class="notice notice--warning" role="note">
+      <p><strong>Rule-based review only — no AI probability was generated.</strong></p>
+      <p>
+        The machine-learning prediction pipeline has not been integrated into this deployment.
+        This report shows the wording patterns matched by transparent rules only. A warning
+        does not prove fraud, and no warnings does not prove that a job is safe.
+      </p>
+    </div>
+
+    <h2 class="subsection-title">Warning signs found</h2>
+    {% if findings %}
+      <p>{{ findings|length }} rule-based indicator{{ '' if findings|length == 1 else 's' }} matched the submitted text.</p>
+      <div class="card-grid">
+        {% for finding in findings %}
+          <article class="card">
+            <p class="muted">{{ finding.category }} &middot; {{ finding.severity|capitalize }} severity</p>
+            <h3 class="card__title">{{ finding.title }}</h3>
+            <p>{{ finding.explanation }}</p>
+            <p><strong>Matched wording</strong></p>
+            <blockquote>{{ finding.evidence }}</blockquote>
+            <p><strong>Suggested next step</strong></p>
+            <p>{{ finding.recommendation }}</p>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="notice notice--info">
+        <p><strong>No configured warning patterns matched this text.</strong></p>
+        <p>
+          This does not establish that the opportunity is genuine. Independently confirm the
+          vacancy on the employer's official careers website, check the recruiter's identity,
+          and never pay to secure an interview or share OTPs, PINs, or banking credentials.
+        </p>
+      </div>
+    {% endif %}
+
+    <h2 class="subsection-title">Submitted details</h2>
+    <dl class="facts__grid">
+      <div class="fact">
+        <dt>Company</dt>
+        <dd>{{ analysis.company_name or "Not provided" }}</dd>
+      </div>
+      <div class="fact">
+        <dt>Location</dt>
+        <dd>{{ analysis.location or "Not provided" }}</dd>
+      </div>
+      <div class="fact">
+        <dt>Employment type</dt>
+        <dd>{{ analysis.employment_type or "Not provided" }}</dd>
+      </div>
+      <div class="fact">
+        <dt>Report status</dt>
+        <dd>{% if saved %}Saved to this browser's history{% else %}Report shown but could not be saved{% endif %}</dd>
+      </div>
+    </dl>
+
+    {% if analysis.job_description %}
+      <details class="details">
+        <summary class="details__summary">View submitted job description</summary>
+        <div class="details__body"><p>{{ analysis.job_description }}</p></div>
+      </details>
+    {% elif saved %}
+      <p class="muted">The full description was not retained because the privacy setting is disabled.</p>
+    {% endif %}
+
+    {% if not saved %}
+      <div class="notice notice--warning" role="status">
+        <p>The report could not be stored. It is shown for this request only and will not appear in history.</p>
+      </div>
+    {% endif %}
+
+    <div class="form__actions">
+      <a class="btn btn--primary" href="{{ url_for('analysis.analyze') }}">Analyze another job</a>
+      {% if saved %}
+        <a class="btn btn--secondary" href="{{ analysis_url }}">Open saved report</a>
+      {% endif %}
+      <a class="btn btn--secondary" href="{{ url_for('history.history') }}">Analysis history</a>
+    </div>
+
+    {% include "partials/disclaimer.html" %}
+  </div>
+</section>
+{% endblock %}
