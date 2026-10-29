@@ -186,6 +186,41 @@ Copy-Item .env.example .env
 python -c "import secrets; print(secrets.token_hex(32))"   # paste the output into SECRET_KEY in .env
 ```
 
+## Deploying on Vercel
+
+The repository exposes the Flask application as `app` from `app.py`, and
+Vercel can detect Flask from `requirements.txt`. The code can start on Vercel,
+but a working production service still needs its environment configured and
+the model trained.
+
+### Required Vercel environment variables
+
+- `SECRET_KEY`: a random value of at least 32 characters. Generate one locally
+  with `python -c "import secrets; print(secrets.token_hex(32))"`, then add it
+  under **Project → Settings → Environment Variables**. Never commit the real
+  value to GitHub.
+- `DATABASE_URL`: a managed PostgreSQL connection string if you need durable
+  database storage. Without it, the app uses `/tmp/jobshield.db` on Vercel as
+  a bootable preview fallback. That fallback is temporary and must not be used
+  for persistent analysis history.
+- `STORE_JOB_DESCRIPTION`: consider setting this to `false` for a public
+  deployment to avoid storing full job descriptions.
+
+Vercel is automatically treated as production by the app, which enables secure
+cookies and rejects missing or placeholder secret keys. For other production
+hosts, set `FLASK_ENV=production` and configure the same secret and database.
+
+### Important feature readiness
+
+The current repository is still the Phase 1 foundation. The trained model
+(`artifacts/jobshield_pipeline.joblib` plus
+`artifacts/model_metadata.json`) is not included until you train it, so
+`POST /analyze` intentionally returns a setup message instead of a made-up
+machine-learning result. The analysis persistence, history and dashboard
+workflows are also not implemented yet. Deploying the website does not finish
+those features; see the remaining phases above before calling it production
+ready.
+
 ### Dataset (Phase 2 - check the terms first)
 
 Download `kaggle.json` from your Kaggle account page and place it in
