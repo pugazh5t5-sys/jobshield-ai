@@ -7,8 +7,8 @@
   <div class="container">
     <h1 class="page-title">Analytics dashboard</h1>
     <p class="page-lead">
-      Every number on this page is counted from analyses you actually ran. There
-      are no sample figures and no placeholders.
+      These figures are calculated from reports saved in this browser's history.
+      The rules are indicators only; they are not a proof of fraud or a measure of job safety.
     </p>
 
     {% if not has_records %}
@@ -21,14 +21,69 @@
         </span>
         <h2 class="empty-state__title">No analyses yet</h2>
         <p class="empty-state__text">
-          Once you analyze a job posting, its result is saved here and the charts
-          below fill up with your own data.
+          Analyze a job posting to populate this dashboard with real counts from your saved reports.
         </p>
         <a class="btn btn--primary" href="{{ url_for('analysis.analyze') }}">Analyze a job posting</a>
       </div>
     {% else %}
-      {# Charts and summary cards are added in Phase 3, using real SQL counts. #}
-      <p class="page-lead">Loading your saved analyses&hellip;</p>
+      <dl class="facts__grid">
+        <div class="fact">
+          <dt>Total reports</dt>
+          <dd>{{ summary.total_analyses }}</dd>
+        </div>
+        <div class="fact">
+          <dt>Reports with warning indicators</dt>
+          <dd>{{ summary.analyses_with_warnings }}</dd>
+        </div>
+        <div class="fact">
+          <dt>Total warning indicators</dt>
+          <dd>{{ summary.warning_findings }}</dd>
+        </div>
+        <div class="fact">
+          <dt>High-severity indicators</dt>
+          <dd>{{ summary.high_severity }}</dd>
+        </div>
+      </dl>
+
+      <h2 class="subsection-title">Warning indicators by severity</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th scope="col">Severity</th><th scope="col">Matched indicators</th></tr></thead>
+          <tbody>
+            {% for item in charts.severity %}
+              <tr><th scope="row">{{ item.severity|capitalize }}</th><td>{{ item.count }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <h2 class="subsection-title">Recent activity</h2>
+      {% if recent %}
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th scope="col">Job posting</th><th scope="col">Indicators</th><th scope="col">Created</th><th scope="col">Report</th></tr></thead>
+            <tbody>
+              {% for analysis in recent %}
+                <tr>
+                  <td><strong>{{ analysis.job_title }}</strong><br><span class="muted">{{ analysis.company_name or "Employer not specified" }}</span></td>
+                  <td>{{ analysis.findings|length }}</td>
+                  <td>{% if analysis.created_at %}{{ analysis.created_at.strftime("%d %b %Y, %H:%M UTC") }}{% else %}Time unavailable{% endif %}</td>
+                  <td><a class="btn btn--secondary" href="{{ url_for('history.view_analysis', public_id=analysis.public_id) }}">Open</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+
+      <h2 class="subsection-title">Last seven days</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th scope="col">UTC date</th><th scope="col">Reports saved</th></tr></thead>
+          <tbody>{% for day in charts.daily %}<tr><td>{{ day.date }}</td><td>{{ day.count }}</td></tr>{% endfor %}</tbody>
+        </table>
+      </div>
+      <p><a class="btn btn--secondary" href="{{ url_for('history.history') }}">View all saved reports</a></p>
     {% endif %}
 
     {% include "partials/disclaimer.html" %}
