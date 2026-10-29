@@ -20,7 +20,7 @@ from flask import Flask, render_template, request
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.exceptions import HTTPException
 
-from config import BASE_DIR, DISCLAIMER_TEXT, get_config
+from config import BASE_DIR, DISCLAIMER_TEXT, get_config, is_vercel_environment
 from database import db, init_db
 from routes.analysis import analysis_bp
 from routes.dashboard import dashboard_bp
@@ -127,8 +127,11 @@ def create_app(config_name: str | None = None) -> Flask:
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(get_config(config_name))
 
-    # Make sure the folder that holds the local SQLite file exists.
-    os.makedirs(BASE_DIR / "instance", exist_ok=True)
+    # The deployed Vercel bundle is read-only. On Vercel, _database_uri()
+    # uses /tmp for the non-persistent SQLite fallback; do not try to create
+    # an instance/ directory beside the deployed source files.
+    if not is_vercel_environment():
+        os.makedirs(BASE_DIR / "instance", exist_ok=True)
 
     _configure_logging(app)
 

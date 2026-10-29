@@ -11,6 +11,13 @@
       wording you keep, the more the warning-sign rules have to work with.
     </p>
 
+    {% if form_errors %}
+      <div class="notice notice--warning" role="alert" aria-labelledby="validation-errors-heading">
+        <h2 id="validation-errors-heading" class="subsection-title">Please check these fields</h2>
+        <ul>{% for error in form_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+      </div>
+    {% endif %}
+
     {% if not model_status.available %}
       <div class="notice notice--warning" role="status">
         <p>
@@ -32,7 +39,7 @@
           <span class="visually-hidden">(required)</span>
         </label>
         <input class="field__input" type="text" id="job_title" name="job_title"
-               maxlength="200" required
+               maxlength="200" required value="{{ form_data.get('job_title', '') }}"
                aria-describedby="job_title_hint"
                autocomplete="off">
         <p class="field__hint" id="job_title_hint">Between 3 and 200 characters.</p>
@@ -41,7 +48,7 @@
       <div class="field">
         <label class="field__label" for="company_name">Company name</label>
         <input class="field__input" type="text" id="company_name" name="company_name"
-               maxlength="200" aria-describedby="company_name_hint" autocomplete="off">
+               maxlength="200" value="{{ form_data.get('company_name', '') }}" aria-describedby="company_name_hint" autocomplete="off">
         <p class="field__hint" id="company_name_hint">
           Leave blank if the posting doesn't name the employer. A missing employer
           can itself be a warning sign.
@@ -57,7 +64,7 @@
                   name="job_description" rows="12" required
                   maxlength="15000"
                   aria-describedby="job_description_hint"
-                  data-counter-target="job_description_count"></textarea>
+                  data-counter-target="job_description_count">{{ form_data.get('job_description', '') }}</textarea>
         <p class="field__hint" id="job_description_hint">
           Paste the full advert text. Minimum 50 characters, maximum 15,000.
           <span class="field__counter" data-counter="job_description_count"
@@ -69,18 +76,18 @@
         <div class="field">
           <label class="field__label" for="location">Job location</label>
           <input class="field__input" type="text" id="location" name="location"
-                 maxlength="200" autocomplete="off">
+                 maxlength="200" value="{{ form_data.get('location', '') }}" autocomplete="off">
         </div>
 
         <div class="field">
           <label class="field__label" for="employment_type">Employment type</label>
           <select class="field__input" id="employment_type" name="employment_type">
             <option value="">Other / not specified</option>
-            <option value="Full-time">Full-time</option>
-            <option value="Part-time">Part-time</option>
-            <option value="Contract">Contract</option>
-            <option value="Temporary">Temporary</option>
-            <option value="Internship">Internship</option>
+            <option value="Full-time" {% if form_data.get('employment_type') == 'Full-time' %}selected{% endif %}>Full-time</option>
+            <option value="Part-time" {% if form_data.get('employment_type') == 'Part-time' %}selected{% endif %}>Part-time</option>
+            <option value="Contract" {% if form_data.get('employment_type') == 'Contract' %}selected{% endif %}>Contract</option>
+            <option value="Temporary" {% if form_data.get('employment_type') == 'Temporary' %}selected{% endif %}>Temporary</option>
+            <option value="Internship" {% if form_data.get('employment_type') == 'Internship' %}selected{% endif %}>Internship</option>
           </select>
         </div>
       </div>
@@ -88,7 +95,7 @@
       <div class="field">
         <label class="field__label" for="job_url">Job application URL</label>
         <input class="field__input" type="url" id="job_url" name="job_url"
-               maxlength="2000" inputmode="url"
+               maxlength="2000" value="{{ form_data.get('job_url', '') }}" inputmode="url"
                aria-describedby="job_url_hint" autocomplete="off">
         <p class="field__hint" id="job_url_hint">
           Must start with http:// or https://. The app checks the format only.
@@ -104,7 +111,7 @@
             <label class="field__label" for="requirements">Requirements</label>
             <textarea class="field__input" id="requirements" name="requirements"
                       rows="5" maxlength="10000"
-                      data-counter-target="requirements_count"></textarea>
+                      data-counter-target="requirements_count">{{ form_data.get('requirements', '') }}</textarea>
             <p class="field__hint">
               Up to 10,000 characters.
               <span class="field__counter" data-counter="requirements_count">0 / 10000 characters</span>
@@ -115,7 +122,7 @@
             <label class="field__label" for="benefits">Benefits</label>
             <textarea class="field__input" id="benefits" name="benefits"
                       rows="4" maxlength="5000"
-                      data-counter-target="benefits_count"></textarea>
+                      data-counter-target="benefits_count">{{ form_data.get('benefits', '') }}</textarea>
             <p class="field__hint">
               Up to 5,000 characters.
               <span class="field__counter" data-counter="benefits_count">0 / 5000 characters</span>
@@ -126,7 +133,7 @@
             <label class="field__label" for="company_profile">About the company</label>
             <textarea class="field__input" id="company_profile" name="company_profile"
                       rows="5" maxlength="10000"
-                      data-counter-target="company_profile_count"></textarea>
+                      data-counter-target="company_profile_count">{{ form_data.get('company_profile', '') }}</textarea>
             <p class="field__hint">
               Up to 10,000 characters.
               <span class="field__counter" data-counter="company_profile_count">0 / 10000 characters</span>
@@ -137,13 +144,13 @@
             <div class="field">
               <label class="field__label" for="salary_range">Salary or pay information</label>
               <input class="field__input" type="text" id="salary_range" name="salary_range"
-                     maxlength="200" autocomplete="off">
+                     maxlength="200" value="{{ form_data.get('salary_range', '') }}" autocomplete="off">
             </div>
 
             <div class="field">
               <label class="field__label" for="recruiter_email">Recruiter contact email</label>
               <input class="field__input" type="email" id="recruiter_email" name="recruiter_email"
-                     maxlength="254" autocomplete="off"
+                     maxlength="254" value="{{ form_data.get('recruiter_email', '') }}" autocomplete="off"
                      aria-describedby="recruiter_email_hint">
               <p class="field__hint" id="recruiter_email_hint">
                 Optional. Used only by the warning-sign rules to look for

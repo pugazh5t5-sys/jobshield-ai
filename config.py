@@ -2,8 +2,6 @@
 
 Everything that changes between your laptop and a real server is read from
 environment variables here. That way no secret is ever written into the code.
-
-Think of this file as the "settings panel" for the whole application.
 """
 
 from __future__ import annotations
@@ -19,6 +17,11 @@ BASE_DIR = Path(__file__).resolve().parent
 # Read the ".env" file if it exists. Values already set in the real
 # environment always win, which is what cloud hosts rely on.
 load_dotenv(BASE_DIR / ".env")
+
+
+def is_vercel_environment() -> bool:
+    """Return True when this process runs inside a Vercel deployment."""
+    return os.environ.get("VERCEL", "").strip().lower() in {"1", "true", "yes"}
 
 
 def _as_bool(name: str, default: bool = False) -> bool:
@@ -41,14 +44,17 @@ def _as_int(name: str, default: int) -> int:
 
 
 def _database_uri() -> str:
-    """Work out which database to use.
+    """Choose durable cloud storage when configured, otherwise local SQLite.
 
-    Locally we use a SQLite file, which is just a single file on disk - the
-    simplest possible database. If DATABASE_URL is provided (for example by
-    Render), we use that instead.
+    Vercel's function filesystem is not a durable database. The /tmp SQLite
+    fallback is only for a bootable preview/demo; its contents can disappear
+    between function instances or deployments. Set DATABASE_URL to a managed
+    PostgreSQL database before relying on persistent records.
     """
     url = os.environ.get("DATABASE_URL", "").strip()
     if not url:
+        if is_vercel_environment():
+            return "sqlite:////tmp/jobshield.db"
         return f"sqlite:///{(BASE_DIR / 'instance' / 'jobshield.db').as_posix()}"
     # Older hosts hand out "postgres://" which SQLAlchemy no longer accepts.
     if url.startswith("postgres://"):
@@ -97,7 +103,7 @@ class Config:
 
     # --- Privacy -------------------------------------------------------------
     # When false the pasted description is never written to the database.
-    STORE_JOB_DESCRIPTION = _as_bool("STORE_JOB_DESCRIPTION", True)
+    STORE_JOB_DESCRIPTION = _as_bool("STORE_JOB_DESCRIPTION", not is_vercel_environment())
 
     # --- Request limits ------------------------------------------------------
     MAX_CONTENT_LENGTH = _as_int("MAX_CONTENT_LENGTH", 512 * 1024)
@@ -141,7 +147,7 @@ class TestingConfig(Config):
 
 
 class ProductionConfig(Config):
-    """Used on the real server (Render)."""
+    """Used on a real server."""
 
     DEBUG = False
     SESSION_COOKIE_SECURE = True
@@ -173,9 +179,14 @@ _CONFIGS = {
 def get_config(name: str | None = None) -> type[Config]:
     """Pick a configuration class by name.
 
-    FLASK_ENV (or APP_ENV) decides; the default is "development".
+    Vercel deployments are always production by default, even when FLASK_ENV
+    is accidentally omitted. Local runs still default to development.
     """
-    chosen = (name or os.environ.get("FLASK_ENV") or os.environ.get("APP_ENV") or "development")
+    if name is None and is_vercel_environment():
+        chosen = "production"
+    else:
+        chosen = name or os.environ.get("FLASK_ENV") or os.environ.get("APP_ENV") or "development"
+
     config_class = _CONFIGS.get(chosen.strip().lower(), DevelopmentConfig)
     if config_class is ProductionConfig:
         ProductionConfig.validate()
