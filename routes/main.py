@@ -6,7 +6,7 @@ from typing import Any
 
 from flask import Blueprint, current_app, jsonify, render_template
 
-from config import DISCLAIMER_TEXT
+from config import DISCLAIMER_TEXT, is_vercel_environment
 from services.prediction_service import (
     get_model_status,
     read_evaluation_report,
@@ -72,11 +72,24 @@ def health():
     real news instead.
     """
     status = get_model_status(current_app.config["ARTIFACTS_DIR"])
+    persistent_storage = bool(current_app.config.get("SQLALCHEMY_DATABASE_URI")) and bool(
+        __import__("os").environ.get("DATABASE_URL", "").strip()
+    )
+    using_ephemeral_fallback = is_vercel_environment() and not persistent_storage
+
     payload: dict[str, Any] = {
         "app": "JobShield AI",
         "status": "ok" if status["available"] else "degraded",
         "model": "available" if status["available"] else "unavailable",
+        "storage": "ephemeral" if using_ephemeral_fallback else (
+            "configured" if persistent_storage else "local-sqlite"
+        ),
     }
+    if using_ephemeral_fallback:
+        payload["storage_warning"] = (
+            "DATABASE_URL is not configured. Vercel is using temporary SQLite "
+            "storage; records are not durable across function instances or deployments."
+        )
     if status["available"]:
         payload["model_version"] = status.get("version")
     else:
