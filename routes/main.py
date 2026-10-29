@@ -13,6 +13,7 @@ from services.prediction_service import (
     read_evaluation_report,
     read_metadata,
 )
+from services.warning_sign_service import get_rule_registry
 
 main_bp = Blueprint("main", __name__)
 
@@ -61,6 +62,7 @@ def about():
         evaluation=report,
         model_facts=_model_facts(metadata),
         disclaimer=DISCLAIMER_TEXT,
+        warning_rules=get_rule_registry(),
     )
 
 
