@@ -112,8 +112,8 @@ def _evidence_match(pattern: re.Pattern[str], text: str) -> re.Match[str] | None
 
 
 def get_rule_registry() -> list[dict[str, str]]:
-    """Return public rule metadata without exposing regex implementation."""
-    return [
+    """Return public metadata for every active rule, without regex internals."""
+    rules = [
         {
             "id": str(rule["id"]),
             "category": str(rule["category"]),
@@ -124,6 +124,27 @@ def get_rule_registry() -> list[dict[str, str]]:
         }
         for rule in _RULES
     ]
+    rules.extend(
+        [
+            {
+                "id": "free_mail_recruiter",
+                "category": "Recruiter identity",
+                "severity": "low",
+                "title": "Recruiter uses a public email provider",
+                "explanation": "A public email provider does not prove fraud, but the recruiter's identity and relationship to the employer need independent verification.",
+                "recommendation": "Look up the employer's official domain and contact its published recruitment team to confirm the person and vacancy.",
+            },
+            {
+                "id": "shortened_job_link",
+                "category": "Link transparency",
+                "severity": "medium",
+                "title": "Job link uses a URL shortener",
+                "explanation": "A shortened link hides its destination until it is opened. This tool does not open or inspect links.",
+                "recommendation": "Ask for the direct employer careers URL and inspect the destination safely before entering any personal information.",
+            },
+        ]
+    )
+    return rules
 
 
 def analyze_warning_signs(data: dict[str, str]) -> list[dict[str, str]]:
