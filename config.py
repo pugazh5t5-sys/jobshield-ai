@@ -103,7 +103,7 @@ class Config:
 
     # --- Privacy -------------------------------------------------------------
     # When false the pasted description is never written to the database.
-    STORE_JOB_DESCRIPTION = _as_bool("STORE_JOB_DESCRIPTION", True)
+    STORE_JOB_DESCRIPTION = _as_bool("STORE_JOB_DESCRIPTION", not is_vercel_environment())
 
     # --- Request limits ------------------------------------------------------
     MAX_CONTENT_LENGTH = _as_int("MAX_CONTENT_LENGTH", 512 * 1024)
