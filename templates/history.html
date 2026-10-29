@@ -7,8 +7,8 @@
   <div class="container">
     <h1 class="page-title">Analysis history</h1>
     <p class="page-lead">
-      Your saved analyses are private to this browser. No account is needed, and
-      nobody else can see your list.
+      Saved reports are scoped to this browser session. The report contains rule-based
+      warning indicators only; it is not proof that a job is genuine or fraudulent.
     </p>
 
     {% if not analyses %}
@@ -21,11 +21,62 @@
         </span>
         <h2 class="empty-state__title">Nothing saved yet</h2>
         <p class="empty-state__text">
-          Analyses you run will appear here, newest first, so you can reopen or
-          delete them later.
+          Your saved reports will appear here after you analyze a job posting in this browser.
         </p>
         <a class="btn btn--primary" href="{{ url_for('analysis.analyze') }}">Analyze a job posting</a>
       </div>
+    {% else %}
+      <p class="muted">{{ total }} saved report{{ '' if total == 1 else 's' }} &middot; showing page {{ page }} of {{ total_pages }}</p>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th scope="col">Job posting</th>
+              <th scope="col">Review</th>
+              <th scope="col">Created</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for analysis in analyses %}
+              <tr>
+                <td>
+                  <strong><a href="{{ url_for('history.view_analysis', public_id=analysis.public_id) }}">{{ analysis.job_title }}</a></strong>
+                  <br>
+                  <span class="muted">{{ analysis.company_name or "Employer not specified" }}</span>
+                </td>
+                <td>
+                  {% if analysis.findings %}
+                    {{ analysis.findings|length }} warning indicator{{ '' if analysis.findings|length == 1 else 's' }}
+                  {% else %}
+                    No configured patterns matched
+                  {% endif %}
+                </td>
+                <td>{% if analysis.created_at %}{{ analysis.created_at.strftime("%d %b %Y, %H:%M UTC") }}{% else %}Time unavailable{% endif %}</td>
+                <td>
+                  <a class="btn btn--secondary" href="{{ url_for('history.view_analysis', public_id=analysis.public_id) }}">Open</a>
+                  <form method="post" action="{{ url_for('history.delete_analysis', public_id=analysis.public_id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn--secondary" type="submit">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if total_pages > 1 %}
+        <nav class="form__actions" aria-label="History pagination">
+          {% if page > 1 %}
+            <a class="btn btn--secondary" href="{{ url_for('history.history', page=page - 1) }}">Previous</a>
+          {% endif %}
+          <span class="muted">Page {{ page }} of {{ total_pages }}</span>
+          {% if page < total_pages %}
+            <a class="btn btn--secondary" href="{{ url_for('history.history', page=page + 1) }}">Next</a>
+          {% endif %}
+        </nav>
+      {% endif %}
     {% endif %}
 
     {% include "partials/disclaimer.html" %}
