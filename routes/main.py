@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 from flask import Blueprint, current_app, jsonify, render_template
@@ -73,7 +74,7 @@ def health():
     """
     status = get_model_status(current_app.config["ARTIFACTS_DIR"])
     persistent_storage = bool(current_app.config.get("SQLALCHEMY_DATABASE_URI")) and bool(
-        __import__("os").environ.get("DATABASE_URL", "").strip()
+        os.environ.get("DATABASE_URL", "").strip()
     )
     using_ephemeral_fallback = is_vercel_environment() and not persistent_storage
 
