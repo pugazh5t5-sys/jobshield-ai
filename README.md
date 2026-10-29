@@ -4,18 +4,14 @@
 
 > Detect suspicious job postings. Apply with confidence.
 
-JobShield AI is a Flask web application that helps job seekers look more
-carefully at a job posting before they reply to it. It gives **two separate,
-independent second opinions**:
+JobShield AI is a Flask web application that helps job seekers examine a job
+posting before they reply. The current submission flow provides a **rule-based
+warning report**: it validates the form, looks for explainable warning patterns,
+and saves a report to the current browser's history when storage is available.
 
-1. A **machine-learning estimate** from a model trained on real, labelled job
-   postings, based on how the advert is worded.
-2. A **rule-based warning-sign engine** that flags readable patterns - upfront
-   payment requests, requests for sensitive documents, urgent pressure, and so
-   on - and shows the exact words that triggered each one.
-
-The two results are shown side by side and are **never blended into a single
-"scam score"**.
+A machine-learning estimate is planned, but **model training and live inference
+are not yet complete**. The app does not invent a probability or blend warning
+rules into a single "scam score".
 
 > **JobShield AI provides automated estimates and warning signs. It cannot
 > guarantee whether a job or employer is genuine. Verify opportunities
@@ -29,14 +25,14 @@ The two results are shown side by side and are **never blended into a single
 |---|---|---|
 | 1 | Project foundation, design system, landing page | **Complete** (see the Phase 1 report) |
 | 2 | Dataset verification, training and evaluation | Not started |
-| 3 | Form to backend, warning-sign engine, database, history, dashboard | Not started |
-| 4 | Automated tests, accessibility and responsive checks | Not started |
-| 5 | Documentation, GitHub and deployment preparation | Not started |
+| 3 | Validated form, rule checks, saved history and dashboard | **Partial** (rule-only flow implemented; ML inference and migrations pending) |
+| 4 | Automated tests, accessibility and responsive checks | **Partial** (CI and regression tests added; full UI audit pending) |
+| 5 | Documentation, GitHub and deployment preparation | **Partial** (Vercel settings and CI documented; live production smoke test pending) |
 
 Nothing in this repository contains invented data. Where a number is not
 available, the interface says so instead of showing a placeholder.
 
-**Deployment: not yet performed.**
+**Deployment:** a Vercel URL exists, but the current live site's behavior and production environment settings still need a successful smoke test.
 
 ---
 
@@ -51,26 +47,28 @@ typically have only a few minutes to decide whether to reply.
 
 - Build a real, working web application (not a static mock-up) that analyses job
   postings end to end.
-- Train a genuine machine-learning model on a real, licensed, labelled dataset,
-  and report only the metrics that were actually measured.
+- Train and integrate a genuine machine-learning model on a real, licensed,
+  labelled dataset, and report only the metrics that were actually measured.
 - Explain *why* the tool flagged something, in plain language, so the user learns
   the pattern rather than blindly trusting a score.
 - Keep the machine-learning estimate and the rule-based warning signs visibly
   separate, so neither is mistaken for proof.
-- Handle the case where the model or dataset is missing honestly: show setup
-  instructions, never a substitute result.
+- Handle the case where the model or dataset is missing honestly: keep the
+  rule-based report clearly separate and never substitute it for an ML prediction.
 
 ## Features
 
 - Landing page with a live model-facts strip read from the model's own metadata.
 - Job analysis form with server-authoritative validation and a live character
   counter.
-- Results page showing the model estimate and the warning signs in separate
-  panels, with evidence for every rule that fired.
-- Per-browser analysis history with search, filters and pagination - no account
-  required.
-- Analytics dashboard built only from real saved records, with accessible chart
-  alternatives and an honest empty state.
+- Results page showing the evidence and guidance for every configured warning
+  rule that matched. The ML estimate is explicitly marked unavailable until
+  training and inference integration are complete.
+- Per-browser analysis history with pagination and deletion - no account
+  required. Reports are scoped to an opaque browser session ID.
+- Analytics dashboard built only from saved records, with real severity counts,
+  recent activity and a seven-day report trend. A true empty state is shown when
+  the browser has no saved records.
 - An About & methodology page whose evaluation figures are loaded from the saved
   evaluation report, and whose rule list is generated from the rule registry in
   the code.
@@ -119,9 +117,9 @@ Flask routes (routes/)          <- thin: read input, call services, render templ
   |
   +--> validation_service       <- cleans and length-checks untrusted input
   |
-  +--> prediction_service       <- loads the saved pipeline ONCE, predicts
-  |        |
-  |        +--> ml/text_features.py   <- the SAME text builder used in training
+  +--> prediction_service       <- checks model artifacts; live inference pending
+  |
+  +--> ml/text_features.py      <- shared training/inference text builder (planned)
   |
   +--> warning_sign_service     <- independent rule engine, no ML imports
   |
@@ -155,7 +153,7 @@ jobshield-ai/
 ├── requirements-dev.txt    # adds pytest, coverage, matplotlib and kaggle
 ├── .env.example            # safe placeholders - copy to .env
 ├── routes/                 # main, analysis, history, dashboard blueprints
-├── services/               # prediction, warning signs, validation, analytics
+├── services/               # prediction status, rules, validation, visitor identity
 ├── database/               # db object + SQLAlchemy tables
 ├── ml/                     # text_features, train_model, evaluate_model
 ├── data/                   # dataset README + raw/ (never committed)
@@ -212,14 +210,16 @@ hosts, set `FLASK_ENV=production` and configure the same secret and database.
 
 ### Important feature readiness
 
-The current repository is still the Phase 1 foundation. The trained model
+The current repository has a working **rule-based MVP** for validating a job
+posting, identifying configured warning patterns, saving reports, viewing and
+deleting browser-scoped history, and summarizing saved reports in a dashboard.
+It is not yet an AI classifier: the trained model
 (`artifacts/jobshield_pipeline.joblib` plus
-`artifacts/model_metadata.json`) is not included until you train it, so
-`POST /analyze` intentionally returns a setup message instead of a made-up
-machine-learning result. The analysis persistence, history and dashboard
-workflows are also not implemented yet. Deploying the website does not finish
-those features; see the remaining phases above before calling it production
-ready.
+`artifacts/model_metadata.json`) and live inference are not included, and the
+database has no migration system yet. Do not call it production-ready until the
+Vercel environment is configured, a persistent database is connected, the live
+deployment passes smoke tests, and ML training/inference plus the remaining
+accessibility/security review are completed.
 
 ### Dataset (Phase 2 - check the terms first)
 
